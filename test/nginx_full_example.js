@@ -1,7 +1,7 @@
 const NGINX_CONF = String.raw`
 user       www www ; ## Default: nobody
 
-# set the number of worker_processes
+# set the number of worker processes
 # should not exceed the number of CPUs
 worker_processes  5;  ## Default: 1
 error_log  logs/error.log;

@@ -18,17 +18,16 @@ const createToken = function (opts: ITokenConfig) {
 const LCurly = createToken({ name: "LCurly", pattern: /{/ });
 const RCurly = createToken({ name: "RCurly", pattern: /}/ });
 const Semicolon = createToken({ name: "Semicolon", pattern: /;/ });
-const SingleQuote = createToken({ name: "single quote", pattern: /'/ });
-const DoubleQuote = createToken({ name: "double quote", pattern: /"/ });
+const SingleQuotedLiteral = createToken({ name: "single quote", pattern: /'[^']*'/ });
+const DoubleQuoteLiteral = createToken({ name: "double quote", pattern: /"[^"]*"/ });
+const Literal = createToken({
+    name: "Literal", pattern: /[^{}; \t]+/
+});
+
 const Comment = createToken({
     name: "Comment",
     pattern: /#[^\n\r]*/,
-    group: Lexer.SKIPPED
 });
-const Literal = createToken({
-    name: "Literal", pattern: /[^{};]+/
-});
-
 const WhiteSpace = createToken({
     name: "WhiteSpace",
     pattern: /[ \t]+/,
@@ -57,8 +56,8 @@ const allTokens = [
     Semicolon,
     LCurly,
     RCurly,
-    SingleQuote,
-    DoubleQuote,
+    SingleQuotedLiteral,
+    DoubleQuoteLiteral,
     Literal,
 ]
 
@@ -108,29 +107,11 @@ class NginxConfigParser extends CstParser {
         )
     });
     private value = this.RULE("value", () => {
-        //this.MANY(() => this.CONSUME(Comment, { LABEL: "commentsBefore" }));
-        this.OR(
-            [
-                {
-                    GATE: () => this.LA(0).tokenType === SingleQuote,
-                    ALT: () => {
-                        this.CONSUME1(Literal, { LABEL: "value" });
-                        this.CONSUME(SingleQuote);
-                    }
-                },
-                {
-                    GATE: () => this.LA(0).tokenType === DoubleQuote,
-                    ALT: () => {
-                        this.CONSUME2(Literal, { LABEL: "value" });
-                        this.CONSUME(DoubleQuote);
-                    }
-                },
-
-                { ALT: () => this.CONSUME3(Literal, { LABEL: "value" }) },
-
-            ]
-        );
-        //this.OPTION(() => this.CONSUME2(Comment, { LABEL: "commentAfter" }));
+        this.OR([
+            { ALT: () => { this.CONSUME(SingleQuotedLiteral, { LABEL: "value" }); } },
+            { ALT: () => { this.CONSUME(DoubleQuoteLiteral, { LABEL: "value" }); } },
+            { ALT: () => this.CONSUME(Literal, { LABEL: "value" }) },
+        ]);
     });
 
     // from the source code of chevrotain:
@@ -145,28 +126,22 @@ class NginxConfigParser extends CstParser {
     //     }
     // }
     //
-    // if you want everything behaves as before(as like not overridig `LA`), then don't consume the token.
-    //  `consumeToken` is evidently called by the parse, how does it consume the token?
-    //  by not putting it in the token vector? it seems so. the name misled me.
-    //
-    // just steal the code from Cheverotain example: handy
-    // it means if the token is a comment, then don't return it to the token vector(a place where tokens not marked as Lexer.SKIPPED gatheer).
-    // not sure if it's the name as lexer.SKIPPED --- but it mustn't, otherwise why bother overriding `LA`?
-    //
-    // as what we seen before, a lexer.SKIPPED token is absent in the cstPostTerminal process
-    // we don't want the comment to be absent, so...
+    // tokens marked as `lexer.SKIPPED` are absent in the cstPostTerminal process, in fact, they are discarded by the lexer,
+    // in another word, the Parse has no information about those tokens,
+    // we want to keep comments, so we don't mark them as `lex.SKIPPED`
     LA(howMuch) {
         // what happens here is to instruct the Parser(the base class that basically is a black box)
-        //  that when it looks ahead for tokens(every kind of tokens), if it accidentally encounters Comment tokens
-        // then skips them, but not throws them away
+        //  that when it looks ahead for tokens(every kind of tokens), if it accidentally encounters Comment tokens,
+        // it should simply walk past by calling `consumeToken`, which increase the token index. The original way `LA` behaves is to return whatever it sees.
         //
-        // Now we can see there are actually 3 places a token can go:
-        // 1. token vector as a final output, 2. garbage bin 3. an in-process token vector(or stream) without SKIPPED tokens
-        //while (tokenMatcher(super.LA(howMuch), Comment)) {
-        //    super.consumeToken()
-        //}
-        // In fact the WhiteSpace will never be found! When LA takes place the SKIPPED tokens have already gone,
-        // of course: the lexer processes the tokens first
+        //      consumeToken(this: MixedInParser) {
+        //         this.currIdx++
+        //      }
+        //
+        // Just pass by, don't do anything, but the "consumed" tokens are still there in the vector
+        while (tokenMatcher(super.LA(howMuch), Comment)) {
+            super.consumeToken();
+        }
         //if (tokenMatcher(super.LA(howMuch), WhiteSpace)) {
         //    console.log("Found a WhiteSpace!");
         //}
@@ -207,7 +182,6 @@ export const production: Record<string, Rule> = parser.getGAstProductions();
 export function parseNginxConfig(text: string) {
     const lexResult = lexer.tokenize(text);
     parser.input = lexResult.tokens;
-    console.log(lexResult.tokens);
     const cst = parser.node();
     return {
         cst,
@@ -253,7 +227,6 @@ class NginxConfigInterpreter extends BaseCstVisitor {
     }
 
     directive(ctx: any): Directive {
-        console.log(ctx);
         const directive = new Directive();
         directive.verb = ctx.verb;
         directive.parameters = ctx.parameters;
