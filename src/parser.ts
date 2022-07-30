@@ -42,15 +42,8 @@ const NewLine = createToken({
 });
 
 const allTokens = [
-    WhiteSpace,
+    // always place the spaces above, because there are some pattens that consume spaces.
     NewLine,
-    Comment,
-    Semicolon,
-    LCurly,
-    RCurly,
-    SingleQuote,
-    DoubleQuote,
-    Literal,
     // even whitespace is the last one to match,
     // it's missing from the token stream if we use cstPostTerminal
     //  to look ahead for it,
@@ -59,6 +52,14 @@ const allTokens = [
     // if the lexer has done that, whitespace is skipped by the attribute `group: Lexer.SKIPPED`
     // therefore, any function that manipulates the terminal will not see the whole input tokens
     // if there are tokens marked as SKIPPED
+    WhiteSpace,
+    Comment,
+    Semicolon,
+    LCurly,
+    RCurly,
+    SingleQuote,
+    DoubleQuote,
+    Literal,
 ]
 
 // comments can't be discarded(marked as LEXER.SKIPPED), they must be treated as tokens.
@@ -187,7 +188,7 @@ class NginxConfigParser extends CstParser {
 
         //let lookBehindIdx = -1;
         //let prevToken = super.LA(lookBehindIdx);
-//
+        //
         //// After every Token (terminal) is successfully consumed
         //// We will add all the comment that appeared before it to the CST (Parse Tree)
         //while (tokenMatcher(prevToken, Comment)) {
@@ -206,6 +207,7 @@ export const production: Record<string, Rule> = parser.getGAstProductions();
 export function parseNginxConfig(text: string) {
     const lexResult = lexer.tokenize(text);
     parser.input = lexResult.tokens;
+    console.log(lexResult.tokens);
     const cst = parser.node();
     return {
         cst,
