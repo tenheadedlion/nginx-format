@@ -22,8 +22,8 @@ describe("Nginx configuration formatter", () => {
       assert.equal(node.directives[6].subNode.directives.length, 14);
       assert.equal(node.directives[1].semi.commentAfter, "## Default: 1");
     });
+    /*
     it("formats a simple config", () => {
-      const conf = NGINX_FULL_EXAMPLE_FILES[0];
       assert.equal(
         format(
           `
@@ -64,6 +64,10 @@ user www www # a malicious inline comment
 ; ## Default: nobody
 `
       );
+    });*/
+    it("formats complicated config", () => {
+      const conf = NGINX_FULL_EXAMPLE_FILES[0];
+      console.log(format(conf));
     });
   });
 });

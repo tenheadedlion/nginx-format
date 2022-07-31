@@ -37,7 +37,7 @@ function formatNode(node: Node): [Position, string] {
     const level = node.level;
     let result = "";
     node.directives.forEach((d) => {
-        result = result.join(formatDirective(d, level)) + NEWLINE;
+        result = result.join(formatDirective(d, level));
     })
     return [Position.Standalone, result];
 }
@@ -45,7 +45,7 @@ function formatNode(node: Node): [Position, string] {
 function formatDirective(d: Directive, level: number): [Position, string] {
     let result = "";
     const indent = INDENT.repeat(level);
-    result = result.join(formatValue(d.verb));
+    result = formatValue(d.verb)[1];
     result = result.join(formatParameters(d.parameters));
     if (d.semi) {
         result = result.join(formatSemi(d.semi));
