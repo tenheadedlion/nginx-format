@@ -1,5 +1,14 @@
 const NGINX_CONF = String.raw`
-user       www www ; ## Default: nobody
+# Syntax: worker_aio_requests number;
+# Default:
+# worker_aio_requests 32;
+# Context:  events
+
+# This directive appeared in versions 1.1.4 and 1.0.7.
+user       www www # a malicious inline comment
+# a malicious standalone comment
+; ## Default: nobody
+
 
 # set the number of worker processes
 # should not exceed the number of CPUs
@@ -163,7 +172,7 @@ types {
 
 export const NGINX_FULL_EXAMPLE_FILES = [
   NGINX_CONF,
-  PROXY_CONF,
-  FASTCGI_CONF,
-  MINE_TYPE,
+  //PROXY_CONF,
+  //FASTCGI_CONF,
+  //MINE_TYPE,
 ];
