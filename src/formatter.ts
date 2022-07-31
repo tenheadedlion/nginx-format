@@ -1,105 +1,112 @@
 /* eslint-disable no-extend-native */
 import { interpret, Node, Directive, Value } from './parser';
-
-export function format(text: string): string {
-    const node = interpret(text).value;
-    return formatNode(node)[1].trim() + NEWLINE;
-}
+import { Lexer } from 'chevrotain';
 
 // The number of spaces at each indention is 4
 const INDENT = "    ";
 // One space between two words
 const WORDGAP = " ";
 const NEWLINE = "\n";
-enum Position {
-    Inline,
-    Standalone
-}
-type FormatResult = [Position, string];
 
-declare global {
-    interface String {
-        join(res: FormatResult): string;
-    }
-}
-
-String.prototype.join = function (res: FormatResult): string {
-    let s = String(this);
-    if (res[0] === Position.Inline) {
-        s += WORDGAP + res[1];
-    } else if (res[0] === Position.Standalone) {
-        s += NEWLINE + res[1];
-    }
-    return s;
-}
-
-function formatNode(node: Node): [Position, string] {
-    const level = node.level;
-    let result = "";
-    node.directives.forEach((d) => {
-        result = result.join(formatDirective(d, level));
+export function format(text: string): string {
+    const node = interpret(text).value;
+    let out = "";
+    const result = formatNode(node);
+    result.value.forEach(line => {
+        out += line + NEWLINE;
     })
-    return [Position.Standalone, result];
+    return out;
+}
+export class FormatUnit {
+    public value: string[] = [];
+    public shouldStartInNewLine: boolean = false;
+    public canBeAppendedTo: boolean = false;
+    public pushLine(s: string) { this.value.push(s); }
 }
 
-function formatDirective(d: Directive, level: number): [Position, string] {
-    let result = "";
-    const indent = INDENT.repeat(level);
-    result = formatValue(d.verb)[1];
-    result = result.join(formatParameters(d.parameters));
-    if (d.semi) {
-        result = result.join(formatSemi(d.semi));
-    } else if (d.subNode) {
-        result = result.join(formatNode(d.subNode));
+export function concatForUnits(v1: FormatUnit, v2: FormatUnit): FormatUnit {
+    if (v1.value.length === 0) return v2;
+    const len = v2.value.length;
+    if (len === 0) {
+        return v1;
     }
-    return [Position.Standalone, result];
+    if (v1.canBeAppendedTo && !v2.shouldStartInNewLine) {
+        const firstV2Line = v2.value[0];
+        let lastV1Line = v1.value.pop()!;
+        lastV1Line += (
+            (firstV2Line.startsWith(';') || firstV2Line.startsWith('}'))
+                ? ''
+                : WORDGAP) + firstV2Line;
+        v1.value.push(lastV1Line);
+    } else {
+        v1.value = v1.value.concat(v2.value);
+    }
+    v1.canBeAppendedTo = v2.canBeAppendedTo;
+    return v1;
 }
 
-function formatValue(v: Value): [Position, string] {
-    let result = "";
-    let pos = Position.Inline;
+function formatNode(node: Node): FormatUnit {
+    let result = new FormatUnit();
+    node.directives.forEach((d) => {
+        result = concatForUnits(result, formatDirective(d));
+    })
+    if (node.level) {
+        result.value = result.value.map(line => {
+            return INDENT + line;
+        })
+    }
+    result.shouldStartInNewLine = true;
+    result.canBeAppendedTo = true;
+    return result;
+}
+
+function formatDirective(d: Directive): FormatUnit {
+    let result = formatValue(d.verb);
+    result = concatForUnits(result, formatParameters(d.parameters));
+    if (d.semi) {
+        result = concatForUnits(result, formatSemi(d.semi));
+    } else if (d.subNode) {
+        result = concatForUnits(result, formatValue(d.lCurly!));
+        result = concatForUnits(result, formatNode(d.subNode));
+        result = concatForUnits(result, formatValue(d.rCurly!));
+    }
+    return result;
+}
+
+function formatValue(v: Value): FormatUnit {
+    const unit = new FormatUnit();
     if (v.commentsBefore) {
-        let block = "";
         v.commentsBefore.reverse().forEach(cm => {
             cm = cm.trim();
             if (cm) {
-                block += cm + NEWLINE;
+                unit.value.push(cm);
             }
         });
-        block = block.trim();
-        if (block) {
-            pos = Position.Standalone;
-        }
-        result += block.trim();
-        if (result) {
-            result += NEWLINE;
-        }
     }
-    result += v.value.trim();
+    if (unit.value.length) {
+        unit.shouldStartInNewLine = true;
+    }
+    let valueLine = v.value.trim();
     if (v.commentAfter) {
-        result += WORDGAP;
-        result += v.commentAfter.trim();
+        valueLine += WORDGAP;
+        valueLine += v.commentAfter.trim();
+    } else if (v.value === '}') {
+        unit.canBeAppendedTo = false;
+        unit.shouldStartInNewLine = true;
     }
-    return [pos, result];
+    else if (v.value !== ';') {
+        unit.canBeAppendedTo = true;
+    }
+    unit.value.push(valueLine);
+    return unit;
 }
 
 const formatSemi = formatValue;
 
-function formatParameters(params: Value[]): [Position, string] {
-    let result = "";
-    let pos;
-    if (params) {
-        const len = params.length;
-        const firstValue = formatValue(params[0]);
-        // the Position of parameters is determined by the first parameter.
-        pos = firstValue[0];
-        result = firstValue[1];
-        for (let i = 1; i < len; ++i) {
-            result = result.join(formatValue(params[i]));
-        }
-    } else {
-        pos = Position.Inline;
-    }
-
-    return [pos, result];
+function formatParameters(params: Value[]): FormatUnit {
+    let result = new FormatUnit();
+    params.forEach(v => {
+        result = concatForUnits(result, formatValue(v));
+    });
+    return result;
 }

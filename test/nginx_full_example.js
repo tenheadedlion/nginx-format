@@ -58,6 +58,7 @@ http {
     }
 
     # pass requests for dynamic content to rails/turbogears/zope, et al
+    # hello?
     location / {
       proxy_pass      http://127.0.0.1:8080;
     }

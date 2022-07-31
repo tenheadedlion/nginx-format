@@ -272,7 +272,9 @@ export class Directive {
     public verb: Value = new Value();
     public parameters: Value[] = [];
     public semi: Value | null = null;
+    public lCurly: Value | null = null;
     public subNode: Node | null = null;
+    public rCurly: Value | null = null;
 }
 
 export class Node {
@@ -283,16 +285,20 @@ export class Node {
 }
 
 class NginxConfigInterpreter extends BaseCstVisitor {
+    level: number = 0;
     constructor() {
         super();
         this.validateVisitor();
     }
     node(ctx: any): Node {
+        this.level++; // for nested nodes
         const node = new Node();
+        node.level = this.level - 1;
         const directives: Directive[] = [];
         ctx.list.forEach((d: any) => {
             node.directives.push(this.visit(d));
         });
+        this.level--;
         return node;
     }
 
@@ -303,7 +309,10 @@ class NginxConfigInterpreter extends BaseCstVisitor {
         if (ctx.semi) {
             d.semi = Value.from(ctx.semi)
         } else if (ctx.block) {
-            d.subNode = this.visit(ctx.block);
+            const block = ctx.block[0].children;
+            d.lCurly = Value.from(block.LCurly);
+            d.rCurly = Value.from(block.RCurly);
+            d.subNode = this.visit(block.list);
         }
         return d;
     }
@@ -312,9 +321,9 @@ class NginxConfigInterpreter extends BaseCstVisitor {
         return this.visit(ctx.list);
     }
 
-    parameters(ctx: any): Value[] | null {
+    parameters(ctx: any): Value[] {
         if (!ctx.parameters) {
-            return null;
+            return [];
         }
         const values: Value[] = [];
         ctx.parameters.forEach((element: any) => {
