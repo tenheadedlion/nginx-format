@@ -251,7 +251,7 @@ export function parseNginxConfig(text: string) {
 
 const BaseCstVisitor = parser.getBaseCstVisitorConstructor();
 
-class Value {
+export class Value {
     public value: string = "";
     public commentsBefore: string[] | null = [];
     public commentAfter: string | null = "";
@@ -268,14 +268,14 @@ class Value {
     }
 }
 
-class Directive {
+export class Directive {
     public verb: Value = new Value();
     public parameters: Value[] = [];
     public semi: Value | null = null;
     public subNode: Node | null = null;
 }
 
-class Node {
+export class Node {
     public level: number = 0;
     public directives: Directive[] = [];
     public commentsBefore: string[] | null = null;
