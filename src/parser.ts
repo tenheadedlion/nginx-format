@@ -20,6 +20,10 @@ const RCurly = createToken({ name: "RCurly", pattern: /}/ });
 const Semicolon = createToken({ name: "Semicolon", pattern: /;/ });
 const SingleQuotedLiteral = createToken({ name: "single quote", pattern: /'[^']*'/ });
 const DoubleQuoteLiteral = createToken({ name: "double quote", pattern: /"[^"]*"/ });
+const TemplatePlaceholder = createToken({
+    name: "TemplatePlaceholder", pattern: /\{\{[^{};]*\}\}/
+});
+
 const Literal = createToken({
     name: "Literal", pattern: /[^{}; \t]+/
 });
@@ -48,10 +52,11 @@ const allTokens = [
     WhiteSpace,
     Comment,
     Semicolon,
-    LCurly,
-    RCurly,
     SingleQuotedLiteral,
     DoubleQuoteLiteral,
+    TemplatePlaceholder,
+    LCurly,
+    RCurly,
     Literal,
 ]
 
@@ -94,8 +99,9 @@ class NginxConfigParser extends CstParser {
     });
     private value = this.RULE("value", () => {
         this.OR([
-            { ALT: () => { this.CONSUME(SingleQuotedLiteral, { LABEL: "value" }); } },
-            { ALT: () => { this.CONSUME(DoubleQuoteLiteral, { LABEL: "value" }); } },
+            { ALT: () => this.CONSUME(SingleQuotedLiteral, { LABEL: "value" }) },
+            { ALT: () => this.CONSUME(DoubleQuoteLiteral, { LABEL: "value" }) },
+            { ALT: () => this.CONSUME(TemplatePlaceholder, { LABEL: "value" }) },
             { ALT: () => this.CONSUME(Literal, { LABEL: "value" }) },
         ]);
     });
@@ -343,9 +349,9 @@ export function interpret(text: string) {
     const lexResult = lexer.tokenize(text);
     parser.input = lexResult.tokens;
     const cst = parser.node();
-    const node = interpreter.visit(cst);
+    const root = interpreter.visit(cst);
     return {
-        value: node,
+        value: root,
         lexResult,
         parserErrors: parser.errors
     }

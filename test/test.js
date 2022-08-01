@@ -84,8 +84,8 @@ user  www  www # a malicious inline comment
 http {
 server_names_hash_bucket_size 128; # this seems to be required for some vhosts
 server { # php/fastcgi
-    listen       80;
-    server_name  domain1.com www.domain1.com;
+    listen       {{ PORT }};
+    server_name  domain1.com {{ www_domain1_com }};
     access_log   logs/domain1.access.log  main;
     root         html;
 
@@ -102,8 +102,8 @@ server { # php/fastcgi
         String.raw`http  {
     server_names_hash_bucket_size  128; # this seems to be required for some vhosts
     server  { # php/fastcgi
-        listen  80;
-        server_name  domain1.com  www.domain1.com;
+        listen  {{ PORT }};
+        server_name  domain1.com  {{ www_domain1_com }};
         access_log  logs/domain1.access.log  main;
         root  html;
         location  ~  \.php$  {

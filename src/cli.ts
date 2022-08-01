@@ -52,7 +52,6 @@ function main(argv: string[]) {
     rl.question("nginx-format: write result to " + output + "?[Y/N]",
         function (confirmation) {
             if (confirmation === 'y' || confirmation === 'N') {
-                console.log(text);
                 try {
                     text = format(text);
                 } catch {
