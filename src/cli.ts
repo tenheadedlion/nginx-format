@@ -49,7 +49,7 @@ function main(argv: string[]) {
     });
     console.log("input:  " + input);
     console.log("output: " + output);
-    rl.question("nginx-format: write result to " + output + "?[Y/N]",
+    rl.question("nginxfmt: write result to " + output + "?[Y/N]",
         function (confirmation) {
             if (confirmation === 'y' || confirmation === 'N') {
                 try {
@@ -66,7 +66,7 @@ function main(argv: string[]) {
                 }
                 rl.close();
             } else {
-                console.log("nginx-format exits.")
+                console.log("nginxfmt exits.")
                 rl.close();
             }
         }

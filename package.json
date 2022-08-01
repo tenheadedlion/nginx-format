@@ -1,11 +1,18 @@
 {
-  "name": "nginx-conf-formatter",
-  "version": "0.1.0",
+  "name": "nginxfmt",
+  "version": "0.1.1",
   "description": "Format nginx configuration files",
-  "keywords": [],
+  "keywords": [
+    "nginx",
+    "formatter"
+  ],
   "license": "MIT",
-  "repository": "",
+  "author": "tenheadedlion",
+  "repository": "https://github.com/tenheadedlion/nginx-format.git",
   "main": "./dist/lib.js",
+  "bin": {
+    "nginxfmt": "./dist/cli.js"
+  },
   "scripts": {
     "start": "babel-node -x \".ts\" src/index.ts",
     "watch": "concurrently 'npm run watch:types' 'npm run watch:js'",
@@ -18,9 +25,6 @@
     "watch:types": "tsc --emitDeclarationOnly --watch",
     "build:js": "babel src --out-dir dist --extensions \".ts,.tsx\" --source-maps inline",
     "watch:js": "babel src --out-dir dist --extensions \".ts,.tsx\" --source-maps inline --watch"
-  },
-  "bin": {
-    "nginx-format": "./dist/cli.js"
   },
   "devDependencies": {
     "@babel/cli": "^7.18.9",
