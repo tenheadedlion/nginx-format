@@ -4,7 +4,8 @@ import { interpret, Node, Directive, Value } from './parser';
 // The number of spaces at each indention is 4
 const INDENT = "    ";
 // One space between two words
-const WORDGAP = " ";
+const WORDGAP = "  ";
+const WORDGAPSM = " "; // smaller wordgap for inline comments
 const NEWLINE = "\n";
 
 export function format(text: string): string {
@@ -35,7 +36,7 @@ export function concatForUnits(v1: FormatUnit, v2: FormatUnit): FormatUnit {
         lastV1Line += (
             (firstV2Line.startsWith(';') || firstV2Line.startsWith('}'))
                 ? ''
-                : WORDGAP) + firstV2Line;
+                : (/*firstV2Line.startsWith('{') ? WORDGAPSM : */WORDGAP)) + firstV2Line;
         v1.value.push(lastV1Line);
     } else {
         v1.value = v1.value.concat(v2.value);
@@ -87,7 +88,7 @@ function formatValue(v: Value): FormatUnit {
     }
     let valueLine = v.value.trim();
     if (v.commentAfter) {
-        valueLine += WORDGAP;
+        valueLine += WORDGAPSM;
         valueLine += v.commentAfter.trim();
     } else if (v.value === '}') {
         unit.canBeAppendedTo = false;

@@ -59,7 +59,7 @@ www # a malicious inline comment
 # worker_aio_requests 32;
 # Context:  events
 # This directive appeared in versions 1.1.4 and 1.0.7.
-user www www # a malicious inline comment
+user  www  www # a malicious inline comment
 # a malicious standalone comment
 ; ## Default: nobody
 `
@@ -73,7 +73,7 @@ user www www # a malicious inline comment
       right.pushLine("b");
       right.shouldStartInNewLine = false;
       left = concatForUnits(left, right);
-      assert.equal(left.value[0], "a b");
+      assert.equal(left.value[0], "a  b");
     });
 
     it("formats complicated config", () => {
@@ -99,18 +99,18 @@ server { # php/fastcgi
 }
 `
         ),
-        String.raw`http {
-    server_names_hash_bucket_size 128; # this seems to be required for some vhosts
-    server { # php/fastcgi
-        listen 80;
-        server_name domain1.com www.domain1.com;
-        access_log logs/domain1.access.log main;
-        root html;
-        location ~ \.php$ {
-            fastcgi_pass 127.0.0.1:1025;
+        String.raw`http  {
+    server_names_hash_bucket_size  128; # this seems to be required for some vhosts
+    server  { # php/fastcgi
+        listen  80;
+        server_name  domain1.com  www.domain1.com;
+        access_log  logs/domain1.access.log  main;
+        root  html;
+        location  ~  \.php$  {
+            fastcgi_pass  127.0.0.1:1025;
         }
-        location / {
-            fastcgi_pass 127.0.0.1:1025;
+        location  /  {
+            fastcgi_pass  127.0.0.1:1025;
         }
     }
 }
