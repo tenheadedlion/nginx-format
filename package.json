@@ -5,6 +5,7 @@
   "keywords": [],
   "license": "MIT",
   "repository": "",
+  "main": "./dist/lib.js",
   "scripts": {
     "start": "babel-node -x \".ts\" src/index.ts",
     "watch": "concurrently 'npm run watch:types' 'npm run watch:js'",
@@ -15,8 +16,11 @@
     "build": "npm run build:types && npm run build:js",
     "build:types": "tsc --emitDeclarationOnly",
     "watch:types": "tsc --emitDeclarationOnly --watch",
-    "build:js": "babel src --out-dir lib --extensions \".ts,.tsx\" --source-maps inline",
-    "watch:js": "babel src --out-dir lib --extensions \".ts,.tsx\" --source-maps inline --watch"
+    "build:js": "babel src --out-dir dist --extensions \".ts,.tsx\" --source-maps inline",
+    "watch:js": "babel src --out-dir dist --extensions \".ts,.tsx\" --source-maps inline --watch"
+  },
+  "bin": {
+    "nginx-format": "./dist/cli.js"
   },
   "devDependencies": {
     "@babel/cli": "^7.18.9",

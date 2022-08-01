@@ -1,6 +1,5 @@
 /* eslint-disable no-extend-native */
 import { interpret, Node, Directive, Value } from './parser';
-import { Lexer } from 'chevrotain';
 
 // The number of spaces at each indention is 4
 const INDENT = "    ";

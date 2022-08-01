@@ -1,9 +1,9 @@
 /* eslint-disable no-unused-expressions */
 /* eslint-disable no-undef */
 const assert = require("assert");
-const { parseNginxConfig, interpret, parser } = require("../lib/parser");
+const { parseNginxConfig, interpret, parser } = require("../dist/parser");
 const { NGINX_FULL_EXAMPLE_FILES } = require("./nginx_full_example");
-const { format, concatForUnits, FormatUnit } = require("../lib/formatter");
+const { format, concatForUnits, FormatUnit } = require("../dist/formatter");
 
 describe("Nginx configuration formatter", () => {
   describe("Parse https://www.nginx.com/resources/wiki/start/topics/examples/full/", () => {
