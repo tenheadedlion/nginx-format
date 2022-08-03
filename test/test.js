@@ -3,7 +3,7 @@
 const assert = require("assert");
 const { parseNginxConfig, interpret, parser } = require("../dist/parser");
 const { NGINX_FULL_EXAMPLE_FILES } = require("./nginx_full_example");
-const { format, concatForUnits, FormatUnit } = require("../dist/formatter");
+const { format, concatFormUnits, FormatUnit } = require("../dist/formatter");
 
 describe("Nginx configuration formatter", () => {
   describe("Parse https://www.nginx.com/resources/wiki/start/topics/examples/full/", () => {
@@ -72,7 +72,7 @@ user  www  www # a malicious inline comment
       const right = new FormatUnit();
       right.pushLine("b");
       right.shouldStartInNewLine = false;
-      left = concatForUnits(left, right);
+      left = concatFormUnits(left, right);
       assert.equal(left.value[0], "a  b");
     });
 
