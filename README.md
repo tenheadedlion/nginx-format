@@ -48,4 +48,19 @@ Then
 const { nginxfmt: format } = require("nginxfmt");
 // pass the configuration file as string to the function `format`
 const output = format(input);
+// or format with options:
+const output = format(input, { textWidth: 1, indent: "\t" });
+```
+
+The options are:
+
+```js
+nginxfmt.defaults = {
+    // the string filling the space between the head of a line and its margin.
+    // by default it is 4 whitespaces
+    indent?: string,
+    // the number of characters for each line
+    // by default it is 80
+    textWidth?: number,
+}
 ```

@@ -50,14 +50,27 @@ export function concatFormUnits(v1: FormatUnit, v2: FormatUnit, opts: FormatOpti
     if (len === 0) {
         return v1;
     }
+    // Fix: the code is confusing here
     if (v1.canBeAppendedTo && !v2.shouldStartInNewLine) {
         const firstV2Line = v2.value[0];
-        let lastV1Line = v1.value.pop()!;
-        lastV1Line += (
+        const lastV1Line = v1.value.pop()!;
+        // this is the place where line breaks can happen
+        const jointLine = lastV1Line + (
             (firstV2Line.startsWith(';') || firstV2Line.startsWith('}'))
                 ? ''
                 : (/*firstV2Line.startsWith('{') ? WORDGAPSM : */opts.wordgap)) + firstV2Line;
-        v1.value.push(lastV1Line);
+        if (jointLine.length > opts.textWidth!) {
+            v2.value[0] = opts.indent! + firstV2Line;
+            v1.value.push(lastV1Line);
+            v1.value = v1.value.concat(v2.value);
+        }
+        else {
+            v1.value.push(jointLine);
+            if (v2.value.length > 1) {
+                v2.value.shift();
+                v1.value = v1.value.concat(v2.value);
+            }
+        }
     } else {
         v1.value = v1.value.concat(v2.value);
     }

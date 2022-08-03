@@ -79,7 +79,6 @@ user  www  www # a malicious inline comment
     });
 
     it("formats complicated config", () => {
-      const conf = NGINX_FULL_EXAMPLE_FILES[0];
       assert.equal(
         format(
           String.raw`
@@ -119,5 +118,94 @@ server { # php/fastcgi
 `
       );
     });
+    it("correctly break lines longer than configured", () => {
+      assert.equal(
+        format(
+          String.raw`
+http {
+  include    conf/mime.types;
+  include    /etc/nginx/proxy.conf;
+  include    /etc/nginx/fastcgi.conf;
+  index    index.html index.htm index.php;
+
+  default_type application/octet-stream;
+  # long line
+  # should be broken
+  log_format   main '$remote_addr - $remote_user [$time_local]  $status ' '"$request" $body_bytes_sent "$http_referer" ' '"$http_user_agent" "$http_x_forwarded_for"';
+  access_log   logs/access.log  main;
+}
+`, { textWidth: 80 }),
+
+        String.raw`http  {
+    include  conf/mime.types;
+    include  /etc/nginx/proxy.conf;
+    include  /etc/nginx/fastcgi.conf;
+    index  index.html  index.htm  index.php;
+    default_type  application/octet-stream;
+    # long line
+    # should be broken
+    log_format  main  '$remote_addr - $remote_user [$time_local]  $status '
+        '"$request" $body_bytes_sent "$http_referer" '
+        '"$http_user_agent" "$http_x_forwarded_for"';
+    access_log  logs/access.log  main;
+}
+`
+      );
+    });
+        it("correctly break lines longer than configured in a weird way", () => {
+          assert.equal(
+            format(
+              String.raw`
+http {
+  include    conf/mime.types;
+  include    /etc/nginx/proxy.conf;
+  include    /etc/nginx/fastcgi.conf;
+  index    index.html index.htm index.php;
+
+  default_type application/octet-stream;
+  # long line
+  # should be broken
+  log_format   main '$remote_addr - $remote_user [$time_local]  $status ' '"$request" $body_bytes_sent "$http_referer" ' '"$http_user_agent" "$http_x_forwarded_for"';
+  access_log   logs/access.log  main;
+}
+`,
+              { textWidth: 1, indent: "--" }
+            ),
+
+            String.raw`http
+--{
+--include
+----conf/mime.types
+----;
+--include
+----/etc/nginx/proxy.conf
+----;
+--include
+----/etc/nginx/fastcgi.conf
+----;
+--index
+----index.html
+----index.htm
+----index.php
+----;
+--default_type
+----application/octet-stream
+----;
+--# long line
+--# should be broken
+--log_format
+----main
+----'$remote_addr - $remote_user [$time_local]  $status '
+----'"$request" $body_bytes_sent "$http_referer" '
+----'"$http_user_agent" "$http_x_forwarded_for"'
+----;
+--access_log
+----logs/access.log
+----main
+----;
+}
+`
+          );
+        });
   });
 });
