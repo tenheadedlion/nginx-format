@@ -72,8 +72,9 @@ user  www  www # a malicious inline comment
       const right = new FormatUnit();
       right.pushLine("b");
       right.shouldStartInNewLine = false;
-      left = concatFormUnits(left, right);
-      assert.equal(left.value[0], "a  b");
+      const opts = { wordgap: "\t" };
+      left = concatFormUnits(left, right, opts);
+      assert.equal(left.value[0], "a\tb");
     });
 
     it("formats complicated config", () => {
