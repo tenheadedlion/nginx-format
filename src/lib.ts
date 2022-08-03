@@ -1,6 +1,6 @@
 import { format, FormatOptions } from './formatter';
 
-export default function nginxfmt(text: string, opts?: FormatOptions): string {
+export function nginxfmt(text: string, opts?: FormatOptions): string {
     opts = { ...nginxfmt.defaults, ...opts }
     return format(text, opts);
 }

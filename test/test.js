@@ -3,7 +3,8 @@
 const assert = require("assert");
 const { parseNginxConfig, interpret, parser } = require("../dist/parser");
 const { NGINX_FULL_EXAMPLE_FILES } = require("./nginx_full_example");
-const { format, concatFormUnits, FormatUnit } = require("../dist/formatter");
+const { concatFormUnits, FormatUnit } = require("../dist/formatter");
+const { nginxfmt: format } = require("../dist/lib");
 
 describe("Nginx configuration formatter", () => {
   describe("Parse https://www.nginx.com/resources/wiki/start/topics/examples/full/", () => {

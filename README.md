@@ -6,7 +6,6 @@ Installation:
 npm install nginxfmt -g
 ```
 
-
 ```shell
 Usage:
         nginxfmt <target> [-o output] : format <target> into [output]
@@ -46,7 +45,7 @@ npm install nginxfmt --save
 Then
 
 ```js
-const format = require('nginxfmt');
+const { nginxfmt: format } = require("nginxfmt");
 // pass the configuration file as string to the function `format`
 const output = format(input);
 ```
